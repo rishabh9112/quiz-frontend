@@ -1,36 +1,56 @@
-
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { loginUser } from "../api"
-import { useNavigate, Link } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
 
 export default function Login() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const nav = useNavigate()
+  const [form, setForm] = useState({ email: "", password: "" })
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
   const handleLogin = async () => {
     try {
-      const res = await loginUser({ email, password })
-      localStorage.setItem("token", res.data.access_token)
-      nav("/dashboard")
-    } catch {
-      alert("Login failed")
+      const res = await loginUser(form)
+
+      login(res.data.access_token, true)
+
+      navigate("/dashboard")
+    } catch (error) {
+      alert(error?.response?.data?.detail || "Login failed")
     }
   }
 
   return (
     <div className="card">
-      <h1>🎮 Fun Quiz Login</h1>
-      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+      <h2>Login</h2>
+
+      <input
+        placeholder="Email"
+        onChange={(e) =>
+          setForm({ ...form, email: e.target.value })
+        }
+      />
+
       <input
         type="password"
         placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(e) =>
+          setForm({ ...form, password: e.target.value })
+        }
       />
+
+      {/* Google Login */}
+      <button
+        onClick={() =>
+          window.location.href =
+            import.meta.env.VITE_API_BASE_URL +
+            "/auth/google/login"
+        }
+      >
+        Login with Google
+      </button>
+
       <button onClick={handleLogin}>Login</button>
-      <p>
-        New here? <Link to="/register">Register</Link>
-      </p>
     </div>
   )
 }
